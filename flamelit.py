@@ -70,7 +70,6 @@ if opcao == "🗺️ Mapa Interativo":
     st_folium(m, width="100%", height=600)  # ou height="70vh"
 
 # ----- Ranking -----
-# ----- Ranking -----
 else:
     st.title("Ranking de Cidades com Mais Queimadas")
 
@@ -84,10 +83,23 @@ else:
             'qtd_queimadas': 'Número de Queimadas'
         }, inplace=True)
 
-        st.dataframe(ranking, use_container_width=True)
+        # Mostrar pódio com as 3 primeiras
+st.subheader("🏆 Pódio de Queimadas")
 
-        st.subheader("Visualização Gráfica")
-        st.bar_chart(ranking.set_index('Cidade')['Número de Queimadas'])
+top3 = ranking.head(3)
+col1, col2, col3 = st.columns(3)
 
-    else:
-        st.warning("Nenhuma cidade com queimadas foi encontrada nos dados carregados.")
+with col2:  # 🥇 1º lugar no centro
+    cidade = top3.iloc[0]['Cidade']
+    valor = top3.iloc[0]['Número de Queimadas']
+    st.markdown(f"## 🥇 {cidade} 🔥\n### {valor} queimadas")
+
+with col1:  # 🥈 2º lugar à esquerda
+    cidade = top3.iloc[1]['Cidade']
+    valor = top3.iloc[1]['Número de Queimadas']
+    st.markdown(f"### 🥈 {cidade} 🔥\n{valor} queimadas")
+
+with col3:  # 🥉 3º lugar à direita
+    cidade = top3.iloc[2]['Cidade']
+    valor = top3.iloc[2]['Número de Queimadas']
+    st.markdown(f"### 🥉 {cidade} 🔥\n{valor} queimadas")
