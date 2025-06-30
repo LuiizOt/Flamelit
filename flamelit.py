@@ -23,11 +23,11 @@ cidades['popup_html'] = cidades.apply(
 )
 
 # Gradiente de cor: vermelho escuro → claro, branco se 0
-cmap = cm.get_cmap('Reds', 20)
+cmap = cm.get_cmap('Reds', 20).reversed()  # Inverte a paleta
 norm = colors.Normalize(vmin=1, vmax=cidades['qtd_queimadas'].max())
 def get_cor_gradiente(qtd):
     if qtd == 0:
-        return '#ffffff'
+        return '#ffffff'  # branco total
     rgba = cmap(norm(qtd))
     return matplotlib.colors.to_hex(rgba)
 
