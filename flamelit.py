@@ -23,7 +23,10 @@ cidades['popup_html'] = cidades.apply(
 )
 
 # Gradiente de cor: vermelho escuro → claro, branco se 0
-cmap = cm.get_cmap('Reds', 20).reversed()  # Inverte a paleta
+original = cm.get_cmap('Reds', 256)
+cmap = colors.LinearSegmentedColormap.from_list(
+    "custom_reds", original(np.linspace(0.4, 1.0, 20))
+)
 norm = colors.Normalize(vmin=1, vmax=cidades['qtd_queimadas'].max())
 def get_cor_gradiente(qtd):
     if qtd == 0:
