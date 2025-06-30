@@ -70,6 +70,7 @@ if opcao == "🗺️ Mapa Interativo":
     st_folium(m, width="100%", height=600)  # ou height="70vh"
 
 # ----- Ranking -----
+# ----- Ranking -----
 else:
     st.title("Ranking de Cidades com Mais Queimadas")
 
@@ -77,12 +78,16 @@ else:
     ranking = ranking[ranking['qtd_queimadas'] > 0].reset_index(drop=True)
     ranking.index += 1
 
-    ranking.rename(columns={
-        'NM_MUN': 'Cidade',
-        'qtd_queimadas': 'Número de Queimadas'
-    }, inplace=True)
+    if not ranking.empty:
+        ranking.rename(columns={
+            'NM_MUN': 'Cidade',
+            'qtd_queimadas': 'Número de Queimadas'
+        }, inplace=True)
 
-    st.dataframe(ranking, use_container_width=True)
+        st.dataframe(ranking, use_container_width=True)
 
-    st.subheader("Visualização Gráfica")
-    st.bar_chart(ranking.set_index('Cidade')['Número de Queimadas'])
+        st.subheader("Visualização Gráfica")
+        st.bar_chart(ranking.set_index('Cidade')['Número de Queimadas'])
+
+    else:
+        st.warning("Nenhuma cidade com queimadas foi encontrada nos dados carregados.")
