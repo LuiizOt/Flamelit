@@ -61,6 +61,11 @@ with aba_ranking:
     ranking = ranking[ranking['qtd_queimadas'] > 0].reset_index(drop=True)
     ranking.index += 1
 
+    ranking.rename(columns={
+        'NM_MUN': 'Cidade',
+        'qtd_queimadas': 'Número de Queimadas'
+    }, inplace=True)
+
     st.dataframe(ranking, use_container_width=True)
 
     st.subheader("Visualização Gráfica")
