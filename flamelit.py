@@ -7,7 +7,10 @@ import matplotlib
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
-# ----- Dados -----
+# Configuração de layout
+st.set_page_config(layout="wide")
+
+# ----- Carregar Dados -----
 cidades = gpd.read_file("cidades-pr.shp").to_crs(epsg=4326)
 queimadas = gpd.read_file("queimadas-pr.shp").to_crs(epsg=4326)
 
@@ -16,25 +19,25 @@ cidades['qtd_queimadas'] = cidades.geometry.apply(
     lambda geom: queimadas[queimadas.within(geom)].shape[0]
 )
 
-# Criar popup HTML
+# Criar coluna de popup
 cidades['popup_html'] = cidades.apply(
     lambda row: f"<strong>{row['NM_MUN']}</strong><br>Queimadas: {row['qtd_queimadas']}", axis=1
 )
 
-# Escala de cores (gradiente)
+# Escala de cor (do vermelho escuro ao claro)
 cmap = cm.get_cmap('Reds', 20)
-norm = colors.Normalize(vmin=0, vmax=cidades['qtd_queimadas'].max())
+norm = colors.Normalize(vmin=1, vmax=cidades['qtd_queimadas'].max())  # começa em 1
+
 def get_cor_gradiente(qtd):
+    if qtd == 0:
+        return '#ffffff'  # branco
     rgba = cmap(norm(qtd))
     return matplotlib.colors.to_hex(rgba)
 
-# ----- Layout -----
-st.set_page_config(layout="wide")  # Isso deixa a página mais larga
-
-# Sidebar como menu
+# ----- Menu lateral -----
 opcao = st.sidebar.radio("Navegação", ["🗺️ Mapa Interativo", "📊 Ranking de Queimadas"])
 
-# ----- Mapa Interativo -----
+# ----- Aba: Mapa Interativo -----
 if opcao == "🗺️ Mapa Interativo":
     st.title("Mapa de Queimadas no Paraná")
 
@@ -44,15 +47,15 @@ if opcao == "🗺️ Mapa Interativo":
         tiles=None  # sem tiles padrão
     )
 
-    # Base map sem rótulo
+    # Basemap sem rótulos
     folium.TileLayer(
         tiles='https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
         attr='CartoDB Positron No Labels',
-        name='CartoDB Light',
+        name='Basemap Clean',
         control=False
     ).add_to(m)
 
-    # Cidades com estilo e popup
+    # Adiciona camada das cidades com cor dinâmica
     folium.GeoJson(
         cidades,
         name="Cidades",
@@ -66,10 +69,9 @@ if opcao == "🗺️ Mapa Interativo":
         popup=folium.GeoJsonPopup(fields=['popup_html'], labels=False, max_width=300)
     ).add_to(m)
 
-    # Mostrar o mapa com tamanho proporcional
-    st_folium(m, width="100%", height=600)  # ou height="70vh"
+    st_folium(m, width="100%", height=600)
 
-# ----- Ranking -----
+# ----- Aba: Ranking -----
 else:
     st.title("Ranking de Cidades com Mais Queimadas")
 
@@ -78,28 +80,36 @@ else:
     ranking.index += 1
 
     if not ranking.empty:
+        # Renomear colunas
         ranking.rename(columns={
             'NM_MUN': 'Cidade',
             'qtd_queimadas': 'Número de Queimadas'
         }, inplace=True)
 
-        # Mostrar pódio com as 3 primeiras
-st.subheader("🏆 Pódio de Queimadas")
+        # ----- Pódio com emojis -----
+        st.subheader("🏆 Pódio de Queimadas")
 
-top3 = ranking.head(3)
-col1, col2, col3 = st.columns(3)
+        top3 = ranking.head(3)
+        col1, col2, col3 = st.columns(3)
 
-with col2:  # 🥇 1º lugar no centro
-    cidade = top3.iloc[0]['Cidade']
-    valor = top3.iloc[0]['Número de Queimadas']
-    st.markdown(f"## 🥇 {cidade} 🔥\n### {valor} queimadas")
+        with col2:  # 🥇
+            cidade = top3.iloc[0]['Cidade']
+            valor = top3.iloc[0]['Número de Queimadas']
+            st.markdown(f"## 🥇 {cidade} 🔥\n### {valor} queimadas")
 
-with col1:  # 🥈 2º lugar à esquerda
-    cidade = top3.iloc[1]['Cidade']
-    valor = top3.iloc[1]['Número de Queimadas']
-    st.markdown(f"### 🥈 {cidade} 🔥\n{valor} queimadas")
+        with col1:  # 🥈
+            cidade = top3.iloc[1]['Cidade']
+            valor = top3.iloc[1]['Número de Queimadas']
+            st.markdown(f"### 🥈 {cidade} 🔥\n{valor} queimadas")
 
-with col3:  # 🥉 3º lugar à direita
-    cidade = top3.iloc[2]['Cidade']
-    valor = top3.iloc[2]['Número de Queimadas']
-    st.markdown(f"### 🥉 {cidade} 🔥\n{valor} queimadas")
+        with col3:  # 🥉
+            cidade = top3.iloc[2]['Cidade']
+            valor = top3.iloc[2]['Número de Queimadas']
+            st.markdown(f"### 🥉 {cidade} 🔥\n{valor} queimadas")
+
+        # ----- Tabela completa -----
+        st.subheader("📋 Ranking Completo")
+        st.dataframe(ranking, use_container_width=True)
+
+    else:
+        st.warning("Nenhuma cidade com queimadas foi encontrada nos dados carregados.")
