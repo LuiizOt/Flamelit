@@ -57,6 +57,8 @@ if pagina == "Página Inicial":
 
         Use as abas laterais para navegar pelo mapa interativo, visualizar o ranking das cidades mais afetadas
         e acessar os dados completos.
+
+        🔗 [Acesse o repositório no GitHub](https://github.com/LuiizOt/Flamelit)
     """)
 
 # Mapa
