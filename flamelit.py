@@ -3,53 +3,34 @@ import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 
-# Carregar arquivos (coloque o caminho correto localmente ou no servidor do Streamlit)
+# Carregar os shapefiles
 cidades = gpd.read_file("cidades-pr.shp").to_crs(epsg=4326)
 queimadas = gpd.read_file("queimadas-pr.shp").to_crs(epsg=4326)
 
-# Sidebar para seleção do bairro
-st.sidebar.title('Selecione a Cidade')
-cidades = cidades.sort_values('NM_MUN')
-cidade = st.sidebar.selectbox(
-    "Cidade:",
-    cidades['NM_MUN']
-)
+st.title("Mapa Interativo de Queimadas no Paraná")
 
-# Encontrar o código do bairro selecionado
-codigo = cidades[cidades['NM_MUN'] == cidade]['CD_MUN'].values[0]
+# Criar o mapa centralizado no PR
+m = folium.Map(location=[-24.5, -51.5], zoom_start=7)
 
-# Filtrar o bairro selecionado
-selecionado = cidades[cidades['CD_MUN'] == codigo]
+# Função para contar queimadas e gerar popup
+def gerar_popup(feature):
+    codigo = feature['properties']['CD_MUN']
+    nome = feature['properties']['NM_MUN']
+    geom = cidades[cidades['CD_MUN'] == codigo].geometry.iloc[0]
+    qtd = queimadas[queimadas.within(geom)].shape[0]
+    return f"<strong>{nome}</strong><br>Queimadas: {qtd}"
 
-# Centroide para centralizar o mapa
-centro = selecionado.geometry.iloc[0].centroid
-lat, lon = centro.y, centro.x
-
-# Escolas dentro do bairro
-q_selec = queimadas[queimadas.within(selecionado.geometry.iloc[0])]
-
-# Criar o mapa
-m = folium.Map(location=[lat, lon], zoom_start=12)
-
-# Adicionar camada do bairro
+# Adicionar GeoJson dos municípios com popup
 folium.GeoJson(
-    selecionado.__geo_interface__,
-    name="Cidade",
-    style_function=lambda feature: {
+    cidades,
+    name="Cidades",
+    style_function=lambda x: {
         'fillColor': 'blue',
         'color': 'black',
-        'fillOpacity': 0.5,
-        'weight': 2,
-    }
-).add_to(m)
-
-# Adicionar marcadores de escolas
-for _, queimada in q_selec.iterrows():
-    coords = queimada.geometry
-    folium.Marker(
-        location=[coords.y, coords.x],
-        icon=folium.Icon(color='red', icon='info-sign')
-    ).add_to(m)
-
-# Exibir o mapa
-st_data = st_folium(m, width=700, height=500)
+        'weight': 1,
+        'fillOpacity': 0.2,
+    },
+    tooltip=folium.GeoJsonTooltip(fields=['NM_MUN'], aliases=['Cidade:']),
+    popup=folium.GeoJsonPopup(fields=[], labels=False, parse_html=False,
+        script=True, max_width=300,
+        html=lambda feat: gerar_popup(fe_
