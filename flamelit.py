@@ -12,7 +12,7 @@ st.sidebar.title('Selecione a Cidade')
 cidades = cidades.sort_values('NM_MUN')
 cidade = st.sidebar.selectbox(
     "Cidade:",
-    cidades-pr['NM_MUN']
+    cidades['NM_MUN']
 )
 
 # Encontrar o código do bairro selecionado
@@ -44,7 +44,7 @@ folium.GeoJson(
 ).add_to(m)
 
 # Adicionar marcadores de escolas
-for _, queimada in e_selec.iterrows():
+for _, queimada in q_selec.iterrows():
     coords = queimada.geometry
     folium.Marker(
         location=[coords.y, coords.x],
