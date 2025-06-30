@@ -33,4 +33,9 @@ folium.GeoJson(
     tooltip=folium.GeoJsonTooltip(fields=['NM_MUN'], aliases=['Cidade:']),
     popup=folium.GeoJsonPopup(fields=[], labels=False, parse_html=False,
         script=True, max_width=300,
-        html=lambda feat: gerar_popup(fe_
+        html=lambda feat: gerar_popup(feat)
+    )
+).add_to(m)
+
+# Exibir o mapa no Streamlit
+st_folium(m, width=800, height=600)
