@@ -23,7 +23,7 @@ cidades['popup_html'] = cidades.apply(
     lambda row: f"<strong>{row['NM_MUN']}</strong><br>Queimadas: {row['qtd_queimadas']}", axis=1
 )
 
-# Gradiente de cor: vermelho escuro → claro, branco se 0
+# Gradiente de cor
 original = cm.get_cmap('Reds', 256)
 cmap = colors.LinearSegmentedColormap.from_list(
     "custom_reds", original(np.linspace(0.4, 1.0, 20))
