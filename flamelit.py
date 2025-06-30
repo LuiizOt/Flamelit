@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.cm as cm
 import matplotlib.colors as colors
+import numpy as np
 
 # Configuração
 st.set_page_config(layout="wide")
