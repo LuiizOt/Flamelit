@@ -22,7 +22,7 @@ cidades['popup_html'] = cidades.apply(
 )
 
 # Escala de 20 tons de rosa até vermelho
-cmap = cm.get_cmap('Reds', 10)  # Matplotlib Reds colormap com 20 cores
+cmap = cm.get_cmap('Reds', 30)  # Matplotlib Reds colormap
 norm = colors.Normalize(vmin=0, vmax=cidades['qtd_queimadas'].max())
 
 def get_cor_gradiente(qtd):
