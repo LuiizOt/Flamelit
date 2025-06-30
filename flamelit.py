@@ -7,7 +7,7 @@ import matplotlib
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
-# Carregar shapefiles
+# ----- Dados -----
 cidades = gpd.read_file("cidades-pr.shp").to_crs(epsg=4326)
 queimadas = gpd.read_file("queimadas-pr.shp").to_crs(epsg=4326)
 
@@ -21,23 +21,38 @@ cidades['popup_html'] = cidades.apply(
     lambda row: f"<strong>{row['NM_MUN']}</strong><br>Queimadas: {row['qtd_queimadas']}", axis=1
 )
 
-# Escala de 20 tons de rosa até vermelho
-cmap = cm.get_cmap('Reds', 30)  # Matplotlib Reds colormap
+# Escala de cores (gradiente)
+cmap = cm.get_cmap('Reds', 20)
 norm = colors.Normalize(vmin=0, vmax=cidades['qtd_queimadas'].max())
-
 def get_cor_gradiente(qtd):
-    rgba = cmap(norm(qtd))  # rgba com alpha
-    return matplotlib.colors.to_hex(rgba)  # converte pra HEX
+    rgba = cmap(norm(qtd))
+    return matplotlib.colors.to_hex(rgba)
 
-# Criar abas
-aba_mapa, aba_ranking = st.tabs(["🗺️ Mapa Interativo", "📊 Ranking de Queimadas"])
+# ----- Layout -----
+st.set_page_config(layout="wide")  # Isso deixa a página mais larga
 
-# ----- Aba do mapa -----
-with aba_mapa:
-    st.title("Mapa com Gradiente de Queimadas")
+# Sidebar como menu
+opcao = st.sidebar.radio("Navegação", ["🗺️ Mapa Interativo", "📊 Ranking de Queimadas"])
 
-    m = folium.Map(location=[-24.5, -51.5], zoom_start=7)
+# ----- Mapa Interativo -----
+if opcao == "🗺️ Mapa Interativo":
+    st.title("Mapa de Queimadas no Paraná")
 
+    m = folium.Map(
+        location=[-24.5, -51.5],
+        zoom_start=7,
+        tiles=None  # sem tiles padrão
+    )
+
+    # Base map sem rótulo
+    folium.TileLayer(
+        tiles='https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+        attr='CartoDB Positron No Labels',
+        name='CartoDB Light',
+        control=False
+    ).add_to(m)
+
+    # Cidades com estilo e popup
     folium.GeoJson(
         cidades,
         name="Cidades",
@@ -51,10 +66,11 @@ with aba_mapa:
         popup=folium.GeoJsonPopup(fields=['popup_html'], labels=False, max_width=300)
     ).add_to(m)
 
-    st_folium(m, width=800, height=600)
+    # Mostrar o mapa com tamanho proporcional
+    st_folium(m, width="100%", height=600)  # ou height="70vh"
 
-# ----- Aba do ranking -----
-with aba_ranking:
+# ----- Ranking -----
+else:
     st.title("Ranking de Cidades com Mais Queimadas")
 
     ranking = cidades[['NM_MUN', 'qtd_queimadas']].sort_values(by='qtd_queimadas', ascending=False)
@@ -69,4 +85,4 @@ with aba_ranking:
     st.dataframe(ranking, use_container_width=True)
 
     st.subheader("Visualização Gráfica")
-    st.bar_chart(ranking.set_index('NM_MUN')['qtd_queimadas'])
+    st.bar_chart(ranking.set_index('Cidade')['Número de Queimadas'])
